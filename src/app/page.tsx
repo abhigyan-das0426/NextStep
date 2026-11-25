@@ -1,69 +1,146 @@
-import Image from "next/image";
+'use client';
+
+import React, { useState } from 'react';
+import { useNextStepSession } from '@/hooks/useNextStepSession';
+import { useAuth } from '@/hooks/useAuth';
+import { Header } from '@/components/Header';
+import { ConversationsSidebar } from '@/components/ConversationsSidebar';
+import { ChatArea } from '@/components/ChatArea';
+import { PlanPanel } from '@/components/PlanPanel';
+import { NewPlanModal } from '@/components/NewPlanModal';
+import { TimeChangeModal } from '@/components/TimeChangeModal';
+import { ApiKeyModal } from '@/components/ApiKeyModal';
 
 export default function Home() {
+  const { user, logout } = useAuth();
+  const {
+    conversations,
+    activeConversationId,
+    messages,
+    tasks,
+    availableMinutes,
+    plan,
+    isDemoMode,
+    activeProvider,
+    isLoading,
+    error,
+    sendMessage,
+    retryLastMessage,
+    handleTaskComplete,
+    handleBreakDown,
+    handleUpdateTime,
+    resetPlan,
+    newConversation,
+    selectConversation,
+    deleteConversation,
+    renameConversation,
+    checkConfig,
+  } = useNextStepSession(user);
+
+  const [isApiKeyModalOpen, setIsApiKeyModalOpen] = useState(false);
+  const [isNewPlanOpen, setIsNewPlanOpen] = useState(false);
+  const [isTimeModalOpen, setIsTimeModalOpen] = useState(false);
+  const [isMobilePlanOpen, setIsMobilePlanOpen] = useState(false);
+  const [isDesktopSidebarOpen, setIsDesktopSidebarOpen] = useState(true);
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
+    <div className="flex flex-col h-screen w-screen bg-slate-50 overflow-hidden font-sans">
+      {/* Top Navigation Bar */}
+      <Header
+        isDemoMode={isDemoMode}
+        activeProvider={activeProvider}
+        onOpenApiKeyModal={() => setIsApiKeyModalOpen(true)}
+        onOpenNewPlan={() => setIsNewPlanOpen(true)}
+        onToggleMobilePlan={() => setIsMobilePlanOpen(prev => !prev)}
+        mobilePlanOpen={isMobilePlanOpen}
+        desktopSidebarOpen={isDesktopSidebarOpen}
+        onToggleDesktopSidebar={() => setIsDesktopSidebarOpen(prev => !prev)}
+        mobileSidebarOpen={isMobileSidebarOpen}
+        onToggleMobileSidebar={() => setIsMobileSidebarOpen(prev => !prev)}
+        user={user}
+        onLogout={logout}
+      />
+
+      {/* Modern 3-Column Layout: Conversations Sidebar (Left), Chat (Center), Day Plan (Right) */}
+      <main className="flex-1 flex overflow-hidden relative">
+        <ConversationsSidebar
+          conversations={conversations}
+          activeConversationId={activeConversationId}
+          onSelectConversation={selectConversation}
+          onNewConversation={newConversation}
+          onDeleteConversation={deleteConversation}
+          onRenameConversation={renameConversation}
+          isOpenDesktop={isDesktopSidebarOpen}
+          isOpenMobile={isMobileSidebarOpen}
+          onCloseDesktop={() => setIsDesktopSidebarOpen(false)}
+          onCloseMobile={() => setIsMobileSidebarOpen(false)}
         />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+
+        {/* Center Panel: Chatbot Conversation & Quick Action Commands */}
+        <div className="flex flex-col h-full flex-1 min-w-0 border-r border-slate-200">
+          <ChatArea
+            messages={messages}
+            isLoading={isLoading}
+            error={error}
+            activeProvider={activeProvider}
+            onSendMessage={sendMessage}
+            onRetry={retryLastMessage}
+            onSelectStarter={promptText => sendMessage(promptText)}
+            onOpenTimeModal={() => setIsTimeModalOpen(true)}
+            onOpenApiKeyModal={() => setIsApiKeyModalOpen(true)}
+          />
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+
+        {/* Right Panel: Day Plan Dashboard (Hero Action, Time Budget, Schedule) */}
+        <div className="hidden lg:flex flex-col h-full shrink-0 lg:w-[360px] xl:w-[420px] bg-white">
+          <PlanPanel
+            tasks={tasks}
+            plan={plan}
+            availableMinutes={availableMinutes}
+            onTaskComplete={handleTaskComplete}
+            onBreakDown={handleBreakDown}
+            onOpenTimeModal={() => setIsTimeModalOpen(true)}
+            isOpenMobile={false}
+            onCloseMobile={() => setIsMobilePlanOpen(false)}
+          />
+        </div>
+
+        {/* Mobile Slide-over Plan Panel */}
+        <div className="lg:hidden">
+          <PlanPanel
+            tasks={tasks}
+            plan={plan}
+            availableMinutes={availableMinutes}
+            onTaskComplete={handleTaskComplete}
+            onBreakDown={handleBreakDown}
+            onOpenTimeModal={() => setIsTimeModalOpen(true)}
+            isOpenMobile={isMobilePlanOpen}
+            onCloseMobile={() => setIsMobilePlanOpen(false)}
+          />
         </div>
       </main>
+
+      {/* Modals */}
+      <ApiKeyModal
+        isOpen={isApiKeyModalOpen}
+        onClose={() => setIsApiKeyModalOpen(false)}
+        activeProvider={activeProvider}
+        onKeySaved={checkConfig}
+      />
+
+      <NewPlanModal
+        isOpen={isNewPlanOpen}
+        onClose={() => setIsNewPlanOpen(false)}
+        onConfirm={resetPlan}
+      />
+
+      <TimeChangeModal
+        isOpen={isTimeModalOpen}
+        onClose={() => setIsTimeModalOpen(false)}
+        currentTime={availableMinutes}
+        onUpdateTime={handleUpdateTime}
+      />
     </div>
   );
 }
