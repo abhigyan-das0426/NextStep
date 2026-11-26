@@ -1,3 +1,8 @@
+
+
+https://github.com/user-attachments/assets/83224804-e793-4e04-95be-b6c20f44c139
+
+
 # NextStep - One-on-One AI Task-Planning Chatbot
 
 **Live Demo:** [https://next-step-khaki-eta.vercel.app/](https://next-step-khaki-eta.vercel.app/)
